@@ -46,7 +46,7 @@ class POSController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, m_user $useri)
     {
         $useri = m_user::findOrFail($id);
         return view('m_user.show', compact('useri'));
