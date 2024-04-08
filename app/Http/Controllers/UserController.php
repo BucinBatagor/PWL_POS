@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePostRequest;
 use App\Models\UserModel;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,29 +13,27 @@ class UserController extends Controller
     public function index()
     {
         $user = UserModel::with('level')->get();
-        dd($user);
+        // dd($user);
+        return view('user.user', ['data' => $user]);
     }
 
     public function tambah()
     {
-        return view('user_tambah');
+        return view('user.user_tambah');
     }
 
-    public function tambah_simpan(Request $request)
+    public function tambah_simpan(StorePostRequest $request): RedirectResponse
     {
-        UserModel::create([
-            'username' => $request->username,
-            'nama' => $request->nama,
-            'password' => Hash::make('$request->password'),
-            'level_id' => $request->level_id
-        ]);
+        $validated = $request->validated();
+        $validated = $request->safe()->only('username', 'nama', 'password', 'level_id');
+        $validated = $request->safe()->except('username', 'nama', 'password', 'level_id');
         return redirect('/user');
     }
 
     public function ubah($id)
     {
         $user = UserModel::find($id);
-        return view('user_ubah', ['data' => $user]);
+        return view('user.user_ubah', ['data' => $user]);
     }
 
     public function ubah_simpan($id, Request $request)
@@ -42,7 +42,6 @@ class UserController extends Controller
 
         $user->username = $request->username;
         $user->nama = $request->nama;
-        $user->password = Hash::make('$request->password');
         $user->level_id = $request->level_id;
 
         $user->save();
