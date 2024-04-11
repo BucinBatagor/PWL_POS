@@ -19,16 +19,23 @@ class UserController extends Controller
             'title' => 'Daftar User yang terdaftar pada sistem',
         ];
 
-        $activeMenu = 'user';
+        $activeMenu = 'user'; // Set menu yang sedang aktif
 
-        return view('user.index', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu]);
+        $level = LevelModel::all(); // Ambil data level untuk filter level
+
+        return view('user.index', ['breadcrumb' => $breadcrumb, 'page' => $page, 'level' => $level, 'activeMenu' => $activeMenu]);
     }
 
     // Ambil data user dalam bentuk json untuk datatables
     public function list(Request $request)
     {
-        $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
+        $users = UserModel::select('user_id','level_id', 'username', 'nama' )
             ->with('level');
+
+        // Filter data user berdasarkan level_id
+        if ($request->level_id) {
+            $users->where('level_id', $request->level_id);
+        }
 
         return DataTables::of($users)
             ->addIndexColumn() // menambahkan kolom index / no urut (default nama kolom: DT_RowIndex)
@@ -67,17 +74,17 @@ class UserController extends Controller
     {
         $request->validate([
             // Username harus diisi, berupa string, minimal 3 karakter, dan bernilai unik di table m_user kolom username
+            'level_id' => 'required|integer',        // level_id harus diisi dan berupa angka
             'username' => 'required|string|min:3|unique:m_user,username',
             'nama'     => 'required|string|max:100', // Nama harus diisi, berupa string, dan maksimal 100 karakter,
-            'password' => 'required|min:5',          // Password harus diisi dan minimal 5 karakter
-            'level_id' => 'required|integer',        // level_id harus diisi dan berupa angka
+            'password' => 'required|min:5'          // Password harus diisi dan minimal 5 karakter
         ]);
 
         UserModel::create([
+            'level_id'  => $request->level_id,
             'username'  => $request->username,
             'nama'      => $request->nama,
-            'password'  => bcrypt($request->password), // Password dienkripsi sebelum disimpan
-            'level_id'  => $request->level_id
+            'password'  => bcrypt($request->password) // Password dienkripsi sebelum disimpan
         ]);
 
         return redirect('/user')->with('success', 'Data user baru telah disimpan');
@@ -127,17 +134,18 @@ class UserController extends Controller
         // Username harus diisi, berupa string, minimal 3 karakter,
         // dan bernilai unik di tabel m_user kolom username kecuali untuk user dengan id yang sedang diedit
         $request->validate([
+            'level_id'  => 'required|integer',        // level_id harus diisi dan berupa angka
             'username'  => 'required|string|min:3|unique:m_user,username,' . $id . ',user_id',
             'nama'      => 'required|string|max:100', // nama harus diisi, berupa string, dan maksimal 100 karakter
-            'password'  => 'nullable|min:5',          // password bisa diedit (minimal 5 karakter) dan bisa tidak diiisi
-            'level_id'  => 'required|integer',        // level_id harus diisi dan berupa angka
+            'password'  => 'nullable|min:5'          // password bisa diedit (minimal 5 karakter) dan bisa tidak diiisi
         ]);
 
         UserModel::find($id)->update([
+            'level_id'  => $request->level_id,
             'username'  => $request->username,
             'nama'      => $request->nama,
-            'password'  => $request->password ? bcrypt($request->password) : UserModel::find($id)->password,
-            'level_id'  => $request->level_id
+            'password'  => $request->password ? bcrypt($request->password) : UserModel::find($id)->password
+            
         ]);
 
         return redirect('/user')->with('success', 'Data user berhasil diubah');
