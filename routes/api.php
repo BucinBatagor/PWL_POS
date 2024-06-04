@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Jobsheet 10
 // Praktikum 1
 Route::post('/register', App\Http\Controllers\Api\RegisterController::class)->name('register');
 
@@ -61,3 +62,7 @@ Route::post('barangs' , [BarangController::class,'store']);
 Route::get('barangs/{barang}', [BarangController::class,'show']);
 Route::put("barangs/{barang}",[BarangController::class,'update']);
 Route::delete("barangs/{barang}",[BarangController::class,'destroy']);
+
+// Jobsheet 11
+Route::post('/register1', App\Http\Controllers\Api\RegisterController::class)->name('register1');
+Route::post('/barang1', App\Http\Controllers\Api\BarangController::class)->name('barang1');
